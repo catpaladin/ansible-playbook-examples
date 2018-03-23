@@ -1,0 +1,15 @@
+---
+- hosts: test
+  remote_user: root
+
+  # sample tasks
+  tasks:
+
+    - name: view current distro
+      shell: cat /etc/*-release
+      register: distro
+    - debug: var=distro
+
+    # perform an action that requires root access
+    - name: create user foo
+      user: name=foo

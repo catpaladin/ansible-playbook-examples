@@ -1,0 +1,29 @@
+---
+restart_services_when_finished: true
+remote_keystore_path: /etc/ssl/certs
+remote_keystore_owner: root
+remote_keystore_group: root
+
+# when generating a new Certificate Authority Root Certificate, these values with be used
+ca_root_country:
+ca_root_state:
+ca_root_locality:
+ca_root_organization:
+ca_root_organization_unit:
+ca_root_common_name:
+ca_root_email_address:
+ca_root_valid_for_days: 3652
+
+local_keystore_path: keystores
+ssl_keystore_pass: changeit
+ssl_truststore_pass: changeit
+
+ca_root_cert_dir: ca
+ca_root_cert_conf_path: "{{ ca_root_cert_dir }}/gen_ca_cert.conf"
+ca_root_cert_path: "{{ ca_root_cert_dir }}/ca-cert"
+ca_root_key_path: "{{ ca_root_cert_dir }}/ca-key"
+
+ca_root_create_cert_only: false
+ca_root_renew_existing: false
+
+ssl_for_apiservers: false

@@ -1,0 +1,72 @@
+---
+# check if the certificate exists, if it does we'll use it
+# instead of generating a new one
+
+- block:
+  - name: check if CA root certificate exists
+    become: no
+    local_action: stat path="{{ ca_root_cert_dir }}"
+    run_once: true
+    register: cert_stat
+
+  - debug:
+      msg: "skipping CA root certificate generation: certificate already exists at path '{{ ca_root_cert_dir }}'"
+    when: cert_stat.stat.exists
+    run_once: true
+
+- block:
+  - name: create destination directory for new CA root certificate and key
+    file:
+      path: "{{ ca_root_cert_dir }}"
+      state: directory
+
+  - name: populate certificate config
+    template:
+      src: gen_ca_cert.conf 
+      dest: "{{ ca_root_cert_conf_path }}"
+
+  - name: create new CA root certificate and key
+    command: |
+      openssl req \
+        -config "{{ ca_root_cert_conf_path }}" \
+        -new \
+        -x509 \
+        -nodes \
+        -keyout "{{ ca_root_key_path }}" \
+        -out "{{ ca_root_cert_dir }}" \
+        -days "{{ ca_root_valid_for_days }}"
+
+  when: not cert_stat.stat.exists
+  delegate_to: localhost
+  become: no
+  run_once: true
+
+- block:
+  - set_fact: current_date="{{lookup('pipe','date +%Y-%m-%d')}}"
+
+  - name: backup existing certificate directory
+    command: "zip -r ca-backup-{{ current_date }}.zip {{ ca_root_cert_dir }}"
+    when: cert_stat.stat.exists
+
+  - name: generate a new csr for the existing root certificate
+    command: |
+      openssl req \
+        -config "{{ ca_root_cert_conf_path }}" \
+        -new \
+        -key "{{ ca_root_key_path }}" \
+        -out "{{ ca_root_cert_dir }}/ca_renew.csr"
+
+  - name: sign the new csr with the key to generate compatible 
+    command: |
+      openssl x509 \
+        -req \
+        -days "{{ ca_root_valid_for_days }}" \
+        -in "{{ ca_root_cert_dir }}/ca_renew.csr" \
+        -signkey "{{ ca_root_key_path }}" \
+        -out "{{ ca_root_cert_dir }}/ca-cert"
+  
+  delegate_to: localhost
+  become: no
+  run_once: true
+  when: ca_root_renew_existing and cert_stat.stat.exists
+  

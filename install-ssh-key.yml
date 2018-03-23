@@ -1,0 +1,30 @@
+# This playbook installs the SSH key specified by ssh_key.* variables.
+# The assumption is that the key is stored, encrypted, in a yaml variable
+# file. This playbook extracts the variable and installs it to the specified
+# location.
+---
+- name: install ssh key
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: determine current user
+      command: whoami
+      register: whoami_result
+      become: no
+
+    - set_fact:
+        key_owner: "{{ whoami_result.stdout }}"
+
+    - name: ensure destination directory exists.
+      file:
+        dest: "{{ ssh_key.destination | dirname }}"
+        mode: 0700
+        owner: "{{ key_owner }}"
+        state: directory
+
+    - name: install ssh key
+      copy:
+        content: "{{ ssh_key.body }}"
+        dest: "{{ ssh_key.destination }}"
+        mode: 0600
+        owner: "{{ key_owner }}"

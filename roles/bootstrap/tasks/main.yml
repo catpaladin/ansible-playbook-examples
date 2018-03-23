@@ -1,0 +1,12 @@
+---
+# uri module requires httplib2
+- name: ensure httplib2 is installed
+  pip:
+    name: httplib2
+  become: yes
+  become_method: sudo
+
+- name: Check for single host
+  fail: msg="Should not be run against more than one host"
+  when: "{{ play_hosts|length }} > 1"
+

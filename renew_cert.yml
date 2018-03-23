@@ -1,0 +1,4 @@
+- name: Renew existing Certificate Authority root certificate
+  hosts: localhost
+  roles:
+    - { role: ssl, ca_root_create_cert_only: yes, ca_root_renew_existing: yes }

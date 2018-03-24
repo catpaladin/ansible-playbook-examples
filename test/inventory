@@ -1,2 +1,2 @@
 [test]
-ansible_target
+centos7.dev

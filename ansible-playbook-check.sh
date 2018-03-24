@@ -4,7 +4,7 @@
 set -eu
 
 # look up any yml file in this directory, excluding others with '!'
-find . -maxdepth 1 -name '*.yml' ! -name 'requirements.yml' \
+find . -maxdepth 1 -name '*.yml' ! -name 'requirements.yml' ! -name 'docker-compose*.yml' \
 | while read playbook; do
     echo "checking ${playbook}"
     ansible-playbook -i 'localhost' --syntax-check ${playbook}

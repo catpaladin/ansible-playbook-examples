@@ -1,19 +1,66 @@
-target:
-  image: ansible/centos7-ansible:stable
-  container_name: ansible_target
-  expose:
-    - "22"
-  volumes:
-    - ~/.ssh/id_rsa.pub:/root/.ssh/authorized_keys
-  privileged: true
+---
+version: "2.0"
+services:
+  target:
+    build:
+      context: .
+      dockerfile: ./test/centos7.Dockerfile
+    container_name: ansible_target
+    expose:
+      - "22"
+    volumes:
+      - ~/.ssh/dev.key.pub:/root/.ssh/authorized_keys
+    privileged: true
+    hostname: centos7.dev
+    networks:
+      ansibletest:
+        ipv4_address: 172.25.0.10
 
-test:
-  build:
-    context: .
-    dockerfile: ./ansible.Dockerfile
-  links:
-    - target
-  volumes:
-    - ~/.ssh/id_rsa:/root/.ssh/id_rsa
-    - ~/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
-    - .:/ansible/playbooks
+  test:
+    container_name: ansible_docker
+    # https://github.com/William-Yeh/docker-ansible
+    #image: williamyeh/ansible:centos7
+    build:
+      context: .
+      dockerfile: ./ansible.Dockerfile
+    #links:
+    #  - "target:ansible_target"
+    volumes:
+      - ~/.ssh/dev.key:/root/.ssh/dev.key
+      - ~/.ssh/dev.key.pub:/root/.ssh/dev.key.pub
+      - .:/ansible/playbooks
+    hostname: ansible.dev
+    extra_hosts:
+      - "centos7.dev:172.25.0.10"
+    networks:
+      ansibletest:
+        ipv4_address: 172.25.0.11
+
+  # A container to validate the deployment playbooks
+  validate-deployment-playbooks:
+    container_name: validate-deployment-playbooks
+    build:
+      context: .
+      dockerfile: ./ansible.Dockerfile
+    command: bash -c ./ansible-playbook-check.sh
+
+  # DNS proxy container
+  # https://github.com/mageddo/dns-proxy-server
+  dns-proxy:
+    container_name: dns-proxy-server
+    image: defreitas/dns-proxy-server
+    hostname: dns.mageddo
+    ports:
+      - "5380:5380"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/resolv.conf:/etc/resolv.conf
+
+networks:
+  ansibletest:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/16
+          gateway: 172.25.0.1

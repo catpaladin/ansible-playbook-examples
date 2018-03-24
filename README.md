@@ -1,5 +1,7 @@
 A work in progress
 
+
+Run tests
 ```
-docker-compose run --rm test test/remote-test.yml -i test/inventory
+./run-test.sh
 ```

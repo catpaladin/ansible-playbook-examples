@@ -1,5 +1,5 @@
 ---
-- name: bootstrap usergrid schema
+- name: bootstrap instance
   hosts: localhost
   roles:
     - bootstrap

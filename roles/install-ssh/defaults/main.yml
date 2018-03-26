@@ -1,0 +1,6 @@
+---
+ssh_keygen_bits: 4096
+ssh_keygen_rsa: yes
+ssh_keygen_types:
+  - rsa
+  - ed25519

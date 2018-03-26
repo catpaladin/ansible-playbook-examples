@@ -1,0 +1,44 @@
+---
+- name: ensure destination directory exists.
+  file:
+    dest: "/root/.ssh"
+    mode: 0700
+    owner: "root"
+    state: directory
+
+- name: Create keys
+  command: |
+    ssh-keygen -t {{ item }} -b {{ ssh_keygen_bits }} -N "" \
+      -f /root/.ssh/id_{{ item }} \
+      creates=/root/.ssh/id_{{ item }}
+  with_items:
+   - "{{ ssh_keygen_types }}"
+
+- name: check private keys cert privileges
+  file:
+    path: "/root/.ssh/id_{{ item }}"
+    state: file
+    mode: 0700
+    owner: "root"
+    group: "root"
+  with_items:
+   - "{{ ssh_keygen_types }}"
+
+- name: check public keys cert privileges
+  file:
+    path: "/root/.ssh/id_{{ item }}.pub"
+    state: file
+    mode: 0700
+    owner: "root"
+    group: "root"
+  with_items:
+   - "{{ ssh_keygen_types }}"
+
+- name: install ssh key
+  copy:
+    src: "/root/.ssh/id_{{ item }}.pub"
+    dest: "/root/.ssh/authorized_keys"
+    mode: 0600
+    owner: "root"
+  with_items:
+   - "{{ ssh_keygen_types }}"

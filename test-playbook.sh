@@ -3,15 +3,15 @@
 set -eu
 
 alias docker-compose=/usr/local/bin/docker-compose
-SSH_KEY_PATH=~/.ssh/dev.key
+#SSH_KEY_PATH=~/.ssh/dev.key
 
 # gen SSH key if does not exist
-if [[ -e ${SSH_KEY_PATH} ]]; then
-    echo "Key exists."
-else
-    echo "No key found. Creating key..."
-    ssh-keygen -t rsa -N "" -f ${SSH_KEY_PATH}
-fi
+#if [[ -e ${SSH_KEY_PATH} ]]; then
+#    echo "Key exists."
+#else
+#    echo "No key found. Creating key..."
+#    ssh-keygen -t rsa -N "" -f ${SSH_KEY_PATH}
+#fi
 
 # build to ensure docker-compose doesn't use a stale image
 docker-compose -f docker-compose.test.yml build

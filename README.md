@@ -3,5 +3,5 @@ A work in progress
 
 Run tests
 ```
-./run-test.sh
+./test-playbook.sh 
 ```

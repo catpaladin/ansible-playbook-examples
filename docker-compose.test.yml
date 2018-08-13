@@ -9,7 +9,7 @@ services:
     expose:
       - "22"
     volumes:
-      - ~/.ssh/dev.key.pub:/root/.ssh/authorized_keys
+      - ./dev.key.pub:/root/.ssh/authorized_keys
     privileged: true
     hostname: centos7.dev
     networks:
@@ -23,11 +23,9 @@ services:
     build:
       context: .
       dockerfile: ./ansible.Dockerfile
-    #links:
-    #  - "target:ansible_target"
     volumes:
-      - ~/.ssh/dev.key:/root/.ssh/dev.key
-      - ~/.ssh/dev.key.pub:/root/.ssh/dev.key.pub
+      - ./dev.key:/root/.ssh/dev.key
+      - ./dev.key.pub:/root/.ssh/dev.key.pub
       - .:/ansible/playbooks
     hostname: ansible.dev
     extra_hosts:
@@ -42,7 +40,7 @@ services:
     build:
       context: .
       dockerfile: ./ansible.Dockerfile
-    command: bash -c ./ansible-playbook-check.sh
+    command: /bin/bash -c ./ansible-playbook-check.sh
 
   # DNS proxy container
   # https://github.com/mageddo/dns-proxy-server

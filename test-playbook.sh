@@ -3,15 +3,15 @@
 set -eu
 
 alias docker-compose=/usr/local/bin/docker-compose
-#SSH_KEY_PATH=~/.ssh/dev.key
+SSH_KEY_PATH=./dev.key
 
 # gen SSH key if does not exist
-#if [[ -e ${SSH_KEY_PATH} ]]; then
-#    echo "Key exists."
-#else
-#    echo "No key found. Creating key..."
-#    ssh-keygen -t rsa -N "" -f ${SSH_KEY_PATH}
-#fi
+if [[ -e ${SSH_KEY_PATH} ]]; then
+   echo "Key exists."
+else
+   echo "No key found. Creating key..."
+   ssh-keygen -t rsa -N "" -f ${SSH_KEY_PATH}
+fi
 
 # build to ensure docker-compose doesn't use a stale image
 docker-compose -f docker-compose.test.yml build
@@ -23,10 +23,10 @@ docker-compose -f docker-compose.test.yml run --rm \
     validate-deployment-playbooks
 
 docker-compose -f docker-compose.test.yml run --rm \
-    test ansible-playbook test/remote-test.yml -i test/inventory -vvv
+    test ansible-playbook test/remote-test.yml -i test/inventory
 
 # shut down any lingering service dependencies
-docker-compose -f docker-compose.test.yml down -v
+docker-compose -f docker-compose.test.yml down
 
 # get oldest running containers
 TARGET_CONTAINER=$(docker ps --all --quiet --filter 'name=ansible_target' | tail -n 1)
@@ -40,16 +40,16 @@ DNS_PROXY_CONTAINER=$(docker ps --all --quiet --filter 'name=dns-proxy-server' |
 echo ""
 
 # exit with non-zero code if any of the test containers exited non-zero
-if [[ $(docker inspect -f '{{ .State.ExitCode }}' ${TARGET_CONTAINER}) -ne 0 ]]; then
+if [[ $(docker inspect ${TARGET_CONTAINER} -f '{{ .State.ExitCode }}') ]]; then
     echo "FAIL: target container failure(s)"
     exit 1;
-elif [[ $(docker inspect -f '{{ .State.ExitCode }}' ${ANSIBLE_CONTAINER}) -ne 0 ]]; then
+elif [[ $(docker inspect ${ANSIBLE_CONTAINER} -f '{{ .State.ExitCode }}') ]]; then
     echo "FAIL: test failure(s)"
     exit 1;
-elif [[ $(docker inspect -f '{{ .State.ExitCode }}' ${PLAYBOOK_VALIDATION_CONTAINER}) -ne 0 ]]; then
+elif [[ $(docker inspect ${PLAYBOOK_VALIDATION_CONTAINER} -f '{{ .State.ExitCode }}') ]]; then
     echo "FAIL: Playbook validation failure(s)"
     exit 1;
-elif [[ $(docker inspect -f '{{ .State.ExitCode }}' ${DNS_PROXY_CONTAINER}) -ne 0 ]]; then
+elif [[ $(docker inspect ${DNS_PROXY_CONTAINER} -f '{{ .State.ExitCode }}') ]]; then
     echo "FAIL: DNS proxy failure(s)"
     exit 1;
 else

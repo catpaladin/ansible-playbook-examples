@@ -1,6 +1,6 @@
 FROM alpine:3.7
 
-ENV ANSIBLE_VERSION 2.4.3.0
+ENV ANSIBLE_VERSION 2.6.2
 
 ENV BUILD_PACKAGES \
   bash \
@@ -27,13 +27,10 @@ RUN apk --update add --virtual build-dependencies \
   openssl-dev \
   python-dev
 
-ADD requirements.txt .
-
 RUN set -x && \
   apk update && apk upgrade && \
   apk add --no-cache ${BUILD_PACKAGES} && \
   pip install --upgrade pip && \
-  pip install -r requirements.txt && \
   pip install python-keyczar docker-py && \
   apk del build-dependencies && \
   rm -rf /var/cache/apk/*
